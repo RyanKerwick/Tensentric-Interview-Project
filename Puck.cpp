@@ -14,7 +14,7 @@ void PuckLibrary::Initialize(){
 
     // Create a 1-9 pucks in random positions from (0, 0) to (480, 480) on the grid.
     int randint = (rand() % 9) + 1;
-    for(int i=0; i<5; i++){
+    for(int i=0; i<randint; i++){
         Puck temp_puck = Puck(i);
         temp_puck.position = {rand() % 481, rand() % 481};
         pucks.push_back(temp_puck); // Add puck to the pucks vector
@@ -22,6 +22,7 @@ void PuckLibrary::Initialize(){
 }
 
 void PuckLibrary::Move(Puck& puck_obj, pos position){
+    cout<<"Moving Puck "<<puck_obj.id<<" to position ("<<position.x<<", "<<position.y<<")"<<endl;
 
     // Move the given puck to the given position
     puck_obj.position = position;
@@ -31,6 +32,7 @@ Puck PuckLibrary::Work(){
 
     // Remove last puck (which must be at the final position), update its hasWorked value, and return it for later use.
     Puck temp_puck = pucks.back();
+    cout<<"Doing work on Puck "<<temp_puck.id<<endl;
     pucks.pop_back();
     temp_puck.hasWorked = true;
     return temp_puck;
@@ -46,6 +48,7 @@ void MyImplementation::ParkPucks(PuckLibrary &puck_library){
     int min_dist;
     bool is_occupied;
     int closest_spot_index;
+    cout<<"Parking pucks"<<endl;
     
     // Move each puck to the closest unoccupied parking spot.
     for(int i=0; i<puck_library.pucks.size(); i++){
@@ -71,12 +74,13 @@ void MyImplementation::ParkPucks(PuckLibrary &puck_library){
         }
 
         // Now that you have found the index of the closest unoccupied spot to this puck, you can move it there.
-        cout<<puck_library.parking_spots.at(closest_spot_index).x<<","<<puck_library.parking_spots.at(closest_spot_index).y<<endl;
-        puck_library.Move(current_puck, puck_library.parking_spots.at(closest_spot_index));
+        // cout<<"Puck "<<current_puck.id<<": ("<<puck_library.parking_spots.at(closest_spot_index).x<<","<<puck_library.parking_spots.at(closest_spot_index).y<<")"<<endl;
+        puck_library.Move(puck_library.pucks.at(i), puck_library.parking_spots.at(closest_spot_index));
     }
 }
 
 int MyImplementation::CloseGaps(PuckLibrary &puck_library){
+    cout<<"Closing gaps"<<endl;
     int pucks_spots_diff = (puck_library.parking_spots.size() - puck_library.pucks.size());
 
     // Since the pucks vector is sorted, simply place each puck at its relative parking spot.
@@ -89,7 +93,7 @@ int MyImplementation::CloseGaps(PuckLibrary &puck_library){
 
 void MyImplementation::SortPucks(PuckLibrary &puck_library){
     int num_sorted = 0;
-
+    cout<<"Sorting pucks vector"<<endl;
     // Sort pucks by their position on the track. The last index of the pucks vector will correspond to the last parking spot on the track.
     // Note: We can't assume the gaps have been closed as CloseGaps is dependent on this function.
 
@@ -119,9 +123,7 @@ void MyImplementation::MoveAndPerformWork(){
     // This will be the standalone function ran in main.cpp, so it will initialize, run, and complete the entire operation.
     PuckLibrary puck_library;
     puck_library.Initialize(); // Initialize the puck library, park all pucks, sort the pucks vector by position on the track, and close the gaps.
-    printPuckInformation(puck_library);
     ParkPucks(puck_library);
-    printPuckInformation(puck_library);
     SortPucks(puck_library);
     CloseGaps(puck_library);
 
@@ -139,9 +141,11 @@ void MyImplementation::MoveAndPerformWork(){
     */
     int last_empty_spot;
     bool run = true;
-
+    
+    cout<<"Initial Configuration: "<<endl;
     while(run){
 
+        printGrid(puck_library, 0);
         // Step 1
         Puck working_puck = puck_library.Work();
         // Step 2
@@ -165,9 +169,11 @@ void MyImplementation::MoveAndPerformWork(){
                 run = true;
             }
         }
+        
     }
 
-    cout<<"Operation has been completed successfully."<<endl;
+    cout<<"Final Configuration: "<<endl;
+    printGrid(puck_library, 0);
     return;
 }
 
@@ -180,4 +186,20 @@ void MyImplementation::printPuckInformation(PuckLibrary puck_library){
         cout<<"Puck "<<temp_puck.id<<": x: "<<temp_puck.position.x<<", y: "<<temp_puck.position.y<<", hasWorked: "<<temp_puck.hasWorked<<endl;
     }
     cout<<"====================================="<<endl;
+}
+
+void MyImplementation::printGrid(PuckLibrary puck_library, int verbose){
+    int offset = puck_library.parking_spots.size() - puck_library.pucks.size();
+    cout<<"START  -> ";
+    for(int i=0; i<puck_library.parking_spots.size(); i++){
+        if(i < offset){
+            cout<<"EMPTY -> ";
+        }else{
+            cout<<"FILLED (Puck: "<<puck_library.pucks.at(i-offset).id<<") -> ";
+        }
+    }
+    cout<<"END"<<endl;
+    if(verbose){
+        printPuckInformation(puck_library);
+    }
 }
