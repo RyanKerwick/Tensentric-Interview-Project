@@ -14,7 +14,7 @@ void PuckLibrary::Initialize(){
 
     // Create a 1-9 pucks in random positions from (0, 0) to (480, 480) on the grid.
     int randint = (rand() % 9) + 1;
-    for(int i=0; i<randint; i++){
+    for(int i=0; i<4; i++){
         Puck temp_puck = Puck(i);
         temp_puck.position = {rand() % 481, rand() % 481};
         pucks.push_back(temp_puck); // Add puck to the pucks vector
@@ -91,30 +91,55 @@ int MyImplementation::CloseGaps(PuckLibrary &puck_library){
     return (pucks_spots_diff - 1);
 }
 
+// void MyImplementation::SortPucks(PuckLibrary &puck_library){
+//     int num_sorted = 0;
+//     cout<<"Sorting pucks vector"<<endl;
+//     // Sort pucks by their position on the track. The last index of the pucks vector will correspond to the last parking spot on the track.
+//     // Note: We can't assume the gaps have been closed as CloseGaps is dependent on this function.
+
+//     // First, starting from the end of the track, locate the closest pucks.
+//     for(int i = (puck_library.parking_spots.size() - 1); i>= 0; i--){
+//         pos current_spot = puck_library.parking_spots.at(i);
+
+//         for(int j=0; j<puck_library.pucks.size(); j++){
+//             Puck current_puck = puck_library.pucks.at(j);
+
+//             if(current_puck.position.x == current_spot.x && current_puck.position.x == current_spot.x){
+
+//                 // As we backtrack the parking spots, we'll place the pucks we find at the end, offset by the number of pucks we've sorted prior.
+//                 // This will result in the pucks position in the vector corresponding to their parking spot.
+//                 for(int k=j; k<puck_library.pucks.size() - 1 - num_sorted; k++){
+//                     Puck temp_puck = puck_library.pucks.at(k);
+//                     puck_library.pucks.at(k) = puck_library.pucks.at(k+1);
+//                     puck_library.pucks.at(k+1) = temp_puck;
+//                 }
+//                 num_sorted++;
+//             }
+//         }
+//     }
+// }
+
 void MyImplementation::SortPucks(PuckLibrary &puck_library){
+    cout<<"Sorting Pucks"<<endl;
     int num_sorted = 0;
-    cout<<"Sorting pucks vector"<<endl;
-    // Sort pucks by their position on the track. The last index of the pucks vector will correspond to the last parking spot on the track.
-    // Note: We can't assume the gaps have been closed as CloseGaps is dependent on this function.
-
-    // First, starting from the end of the track, locate the closest pucks.
-    for(int i = (puck_library.parking_spots.size() - 1); i>= 0; i--){
+    bool was_sorted;
+    for(int i=(puck_library.parking_spots.size() - 1); i>=0; i--){
         pos current_spot = puck_library.parking_spots.at(i);
-
+        was_sorted = false;
         for(int j=0; j<puck_library.pucks.size(); j++){
             Puck current_puck = puck_library.pucks.at(j);
 
-            if(current_puck.position.x == current_spot.x && current_puck.position.x == current_spot.x){
+            if((current_puck.position.x == current_spot.x) && (current_puck.position.y == current_spot.y)){
+                puck_library.pucks.at(j) = puck_library.pucks.at(puck_library.pucks.size() - 1 - num_sorted);
+                puck_library.pucks.at(puck_library.pucks.size() - 1 - num_sorted) = current_puck;
 
-                // As we backtrack the parking spots, we'll place the pucks we find at the end, offset by the number of pucks we've sorted prior.
-                // This will result in the pucks position in the vector corresponding to their parking spot.
-                for(int k=j; k<puck_library.pucks.size() - 1 - num_sorted; k++){
-                    Puck temp_puck = puck_library.pucks.at(k);
-                    puck_library.pucks.at(k) = puck_library.pucks.at(k+1);
-                    puck_library.pucks.at(k+1) = temp_puck;
-                }
+                num_sorted++;
+                break;
             }
         }
+    }
+    for(int i=0; i<puck_library.pucks.size(); i++){
+        cout<<"At index "<<i<<": Puck "<<puck_library.pucks.at(i).id<<endl;
     }
 }
 
@@ -124,6 +149,7 @@ void MyImplementation::MoveAndPerformWork(){
     PuckLibrary puck_library;
     puck_library.Initialize(); // Initialize the puck library, park all pucks, sort the pucks vector by position on the track, and close the gaps.
     ParkPucks(puck_library);
+    printPuckInformation(puck_library);
     SortPucks(puck_library);
     CloseGaps(puck_library);
 
